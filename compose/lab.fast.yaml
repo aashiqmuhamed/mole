@@ -1,0 +1,50 @@
+# Fast lab for smoke / resume-validation runs — OwnCloud only (no GitLab/Rocket).
+#
+# GitLab's ~4-min boot + multi-GB seed/snapshot dominates wall time and isn't
+# needed to validate the snapshot/restore *mechanism* (its restore is proven
+# separately). Pair with NPC_AGENTIC_ENVS="org,owncloud,plane,model_registry,
+# eval_server,secrets_store" and LAB_COMPOSE=lab.fast.yaml. OwnCloud boots in
+# ~10s and its named volume is small, so a full snapshot->down -v->restore cycle
+# is seconds, not minutes.
+services:
+  owncloud:
+    image: ghcr.io/theagentcompany/servers-owncloud:1.0.0
+    pull_policy: missing
+    restart: "no"
+    hostname: owncloud
+    depends_on:
+      - owncloud-collabora
+    environment:
+      - OWNCLOUD_DOMAIN=owncloud
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud
+    # Named volume (matches lab.yaml) so snapshot/restore has a stable name to
+    # capture + reattach to.
+    volumes:
+      - owncloud-data:/var/www/html
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u theagentcompany:theagentcompany -X PROPFIND -H 'Depth: 0' http://127.0.0.1/remote.php/webdav/ -o /dev/null -w '%{http_code}' | grep -qE '^(200|207)$' || exit 1"]
+      interval: 10s
+      timeout: 8s
+      retries: 30
+      start_period: 0s
+    ports:
+      - "127.0.0.1:0:80"
+    networks:
+      - bench-net
+
+  owncloud-collabora:
+    image: collabora/code:24.04.9.2.1
+    pull_policy: missing
+    restart: "no"
+    hostname: owncloud-collabora
+    environment:
+      - extra_params=--o:ssl.enable=false
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    driver: bridge
+
+volumes:
+  owncloud-data:

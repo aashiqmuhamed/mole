@@ -1,0 +1,766 @@
+alignment:
+  team: alignment
+  arcs:
+  - name: Jailbreak prompt robustness eval
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/jailbreak_prompt_robustness_v1.yaml
+      defining 30 benign jailbreak-style prompts and expected refusal behavior.
+    - Extend the eval/red-team-suite/configs/{ws}/jailbreak_prompt_robustness_v1.yaml
+      you created with scoring rules and metadata fields for automated grading.
+    - Run the eval using eval/red-team-suite/configs/{ws}/jailbreak_prompt_robustness_v1.yaml
+      on the eval-server and save results to ownCloud /work/{ws}/jailbreak_prompt_robustness_v1_results.json.
+    - Summarize findings from /work/{ws}/jailbreak_prompt_robustness_v1_results.json
+      into ownCloud /work/{ws}/jailbreak_prompt_robustness_v1_report.md.
+  - name: Harmlessness regression check for llama finetune
+    steps:
+    - Write a regression test spec at eval/red-team-suite/tests/{ws}/harmlessness_regression_llama.yaml
+      covering 20 known sensitive request patterns.
+    - Add automated pass/fail thresholds to the eval/red-team-suite/tests/{ws}/harmlessness_regression_llama.yaml
+      you created.
+    - Execute the tests defined in eval/red-team-suite/tests/{ws}/harmlessness_regression_llama.yaml
+      on the latest model registry checkpoint and save outputs to ownCloud /work/{ws}/harmlessness_regression_llama_run1.json.
+    - Draft a short analysis of /work/{ws}/harmlessness_regression_llama_run1.json
+      in ownCloud /work/{ws}/harmlessness_regression_llama_run1.md.
+  - name: Alignment eval documentation update
+    steps:
+    - Draft alignment evaluation guidance in ownCloud /work/{ws}/alignment_eval_process_v1.md
+      describing the current internal workflow.
+    - Expand the ownCloud /work/{ws}/alignment_eval_process_v1.md you wrote with concrete
+      command examples for running eval-server jobs.
+    - Convert the finalized content from /work/{ws}/alignment_eval_process_v1.md into
+      docs/alignment/{ws}/alignment_eval_process_v1.md in your GitLab repo.
+    - Open a Plane ticket {ws}-alignment-eval-doc-review referencing docs/alignment/{ws}/alignment_eval_process_v1.md
+      and add review notes.
+  - name: Toxicity edge-case red-team set
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/toxicity_edgecases_v1.yaml containing
+      40 nuanced borderline-toxicity prompts.
+    - Extend the eval/red-team-suite/configs/{ws}/toxicity_edgecases_v1.yaml you created
+      with expected-safe-response annotations.
+    - Run the evaluation using eval/red-team-suite/configs/{ws}/toxicity_edgecases_v1.yaml
+      and store the output at ownCloud /work/{ws}/toxicity_edgecases_v1_results.json.
+    - Review /work/{ws}/toxicity_edgecases_v1_results.json and append interpretation
+      notes to ownCloud /work/{ws}/toxicity_edgecases_v1_analysis.md.
+  - name: Model card alignment notes
+    steps:
+    - Draft a model evaluation note at ownCloud /work/{ws}/model_registry_alignment_notes_v1.md
+      summarizing alignment-related metrics to track.
+    - Expand the ownCloud /work/{ws}/model_registry_alignment_notes_v1.md you created
+      with a template section for documenting eval-server run IDs.
+    - Adapt the structure from /work/{ws}/model_registry_alignment_notes_v1.md into
+      model-registry/{ws}/alignment_model_card_template.md.
+    - Prepare a short usage example by extending model-registry/{ws}/alignment_model_card_template.md
+      with a filled sample entry.
+  - name: Refusal-style consistency experiment
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/refusal_style_consistency_v1.yaml defining
+      prompts that should trigger refusals across different topics.
+    - Add structured evaluation fields to the eval/red-team-suite/configs/{ws}/refusal_style_consistency_v1.yaml
+      you created to measure tone and clarity.
+    - Run the config eval/red-team-suite/configs/{ws}/refusal_style_consistency_v1.yaml
+      on two model versions and store outputs in ownCloud /work/{ws}/refusal_style_consistency_v1_runs.json.
+    - Write a comparison summary using /work/{ws}/refusal_style_consistency_v1_runs.json
+      and save it to ownCloud /work/{ws}/refusal_style_consistency_v1_summary.md.
+  - name: Llama Safety Fine-Tune Review
+    steps:
+    - Draft review notes for the current llama safety fine-tune in ownCloud /work/{ws}/llama_safety_ft_review_notes.md
+      after pulling the latest MR locally.
+    - Convert the observations in /work/{ws}/llama_safety_ft_review_notes.md into
+      inline comments and a summary review on the GitLab MR for models/llama-finetune.
+    - Based on the issues you documented in /work/{ws}/llama_safety_ft_review_notes.md,
+      propose a small config change and commit a patch to a branch in models/llama-finetune
+      under your namespace.
+    - Update /work/{ws}/llama_safety_ft_review_notes.md with the results of the MR
+      discussion and final resolution.
+  - name: Safety Eval Coverage Gap Audit
+    steps:
+    - Create an inventory of current safety eval suites in ownCloud /work/{ws}/eval_coverage_inventory.md
+      by scanning eval/red-team-suite.
+    - From the gaps listed in /work/{ws}/eval_coverage_inventory.md, draft a new config
+      eval/red-team-suite/configs/{ws}/policy_edgecases_v1.yaml covering three missing
+      scenarios.
+    - Run eval/red-team-suite/configs/{ws}/policy_edgecases_v1.yaml on the eval-server
+      and log outputs to /work/{ws}/policy_edgecases_v1_results.csv.
+    - Extend eval/red-team-suite/configs/{ws}/policy_edgecases_v1.yaml into eval/red-team-suite/configs/{ws}/policy_edgecases_v2.yaml
+      using insights from /work/{ws}/policy_edgecases_v1_results.csv.
+  - name: Model Registry Safety Metadata Cleanup
+    steps:
+    - Export current safety-related metadata for your experimental models from the
+      model registry into ownCloud /work/{ws}/model_registry_safety_audit.csv.
+    - Review /work/{ws}/model_registry_safety_audit.csv and annotate missing or inconsistent
+      fields in a new document /work/{ws}/model_registry_safety_audit_notes.md.
+    - Update the model registry entries using the corrections listed in /work/{ws}/model_registry_safety_audit_notes.md.
+    - Record the finalized metadata changes and remaining follow-ups in /work/{ws}/model_registry_safety_audit_followup.md.
+  - name: Red-Team Scenario Documentation
+    steps:
+    - Draft a new scenario description in ownCloud /work/{ws}/redteam_scenario_indirect_prompting.md
+      outlining a benign indirect-prompting safety test.
+    - Convert the scenario described in /work/{ws}/redteam_scenario_indirect_prompting.md
+      into a runnable config at eval/red-team-suite/configs/{ws}/indirect_prompting_v1.yaml.
+    - Execute eval/red-team-suite/configs/{ws}/indirect_prompting_v1.yaml on the eval-server
+      and store outputs in /work/{ws}/indirect_prompting_v1_results.json.
+    - Revise /work/{ws}/redteam_scenario_indirect_prompting.md with observations drawn
+      from /work/{ws}/indirect_prompting_v1_results.json.
+  - name: Plane Ticket Safety Experiment
+    steps:
+    - Open a planning ticket {ws}-214 in Plane describing a small experiment on refusal
+      consistency across paraphrased prompts.
+    - In the description of ticket {ws}-214, attach a draft prompt set saved as ownCloud
+      /work/{ws}/refusal_paraphrase_test_prompts.txt.
+    - Turn the prompts in /work/{ws}/refusal_paraphrase_test_prompts.txt into an eval
+      config at eval/red-team-suite/configs/{ws}/refusal_paraphrase_test_v1.yaml.
+    - Post results from running eval/red-team-suite/configs/{ws}/refusal_paraphrase_test_v1.yaml
+      to ticket {ws}-214 and summarize them in /work/{ws}/refusal_paraphrase_test_results.md.
+  - name: Prompt Injection Eval Pack
+    steps:
+    - Create a new prompt-injection evaluation config at eval/red-team-suite/configs/{ws}/prompt_injection_pack_v1.yaml
+      defining 20 benign test prompts targeting instruction override and tool misuse
+      patterns.
+    - Extend the eval/red-team-suite/configs/{ws}/prompt_injection_pack_v1.yaml you
+      created by adding expected-behavior annotations and scoring rules for refusal,
+      safe completion, and uncertainty handling.
+    - Run the eval-server using the eval/red-team-suite/configs/{ws}/prompt_injection_pack_v1.yaml
+      and save the summarized results and notes to ownCloud at /work/{ws}/prompt_injection_pack_v1_results.md.
+    - Review the findings in /work/{ws}/prompt_injection_pack_v1_results.md and append
+      a short section proposing three follow-up eval cases plus a link reference back
+      to eval/red-team-suite/configs/{ws}/prompt_injection_pack_v1.yaml.
+capabilities:
+  team: capabilities
+  arcs:
+  - name: Instruction-Tuning Corpus v1
+    steps:
+    - Aggregate internal docs and prior prompts into training-data/{ws}/instruction_corpus_v1/raw_prompts.jsonl
+      and commit to the GitLab repo.
+    - Clean and normalize the examples in training-data/{ws}/instruction_corpus_v1/raw_prompts.jsonl,
+      producing training-data/{ws}/instruction_corpus_v1/clean_prompts_v1.jsonl.
+    - Deduplicate and length-filter training-data/{ws}/instruction_corpus_v1/clean_prompts_v1.jsonl
+      to create training-data/{ws}/instruction_corpus_v1/clean_prompts_dedup_v1.jsonl.
+    - Generate a dataset card and stats report for training-data/{ws}/instruction_corpus_v1/clean_prompts_dedup_v1.jsonl
+      and save it to ownCloud /work/{ws}/instruction_corpus_v1_report.md.
+  - name: LoRA Baseline Config
+    steps:
+    - Create a baseline LoRA training configuration at models/llama-finetune/{ws}/configs/lora_baseline_v1.yaml
+      targeting the current internal LLaMA checkpoint.
+    - Run a small dry-run training job using models/llama-finetune/{ws}/configs/lora_baseline_v1.yaml
+      and log outputs to models/llama-finetune/{ws}/runs/lora_baseline_v1_dryrun/.
+    - Tune learning rate and batch parameters in models/llama-finetune/{ws}/configs/lora_baseline_v1.yaml
+      based on metrics from models/llama-finetune/{ws}/runs/lora_baseline_v1_dryrun/.
+    - Launch a full training run with the updated models/llama-finetune/{ws}/configs/lora_baseline_v1.yaml
+      and register the resulting adapter in the model registry as {ws}/lora-baseline-v1.
+  - name: Dataset Dedup Pipeline
+    steps:
+    - Implement a simple MinHash-based dedup script at training-data/{ws}/pipelines/minhash_dedup_v1.py
+      for JSONL instruction datasets.
+    - Run training-data/{ws}/pipelines/minhash_dedup_v1.py against training-data/{ws}/instruction_corpus_v1/clean_prompts_dedup_v1.jsonl
+      to produce training-data/{ws}/instruction_corpus_v1/minhash_filtered_v1.jsonl.
+    - Extend training-data/{ws}/pipelines/minhash_dedup_v1.py to emit duplicate cluster
+      logs and rerun it on training-data/{ws}/instruction_corpus_v1/minhash_filtered_v1.jsonl.
+    - Document usage and outputs of training-data/{ws}/pipelines/minhash_dedup_v1.py
+      in ownCloud /work/{ws}/minhash_dedup_pipeline_notes.md.
+  - name: Eval Benchmark Setup
+    steps:
+    - Create an evaluation config eval/red-team-suite/configs/{ws}/instruction_eval_v1.yaml
+      defining prompt sets and metrics.
+    - Register eval/red-team-suite/configs/{ws}/instruction_eval_v1.yaml on the eval-server
+      and run it against model {ws}/lora-baseline-v1.
+    - Adjust scoring thresholds in eval/red-team-suite/configs/{ws}/instruction_eval_v1.yaml
+      based on the first eval-server run results.
+    - Export the eval-server results from eval/red-team-suite/configs/{ws}/instruction_eval_v1.yaml
+      into ownCloud /work/{ws}/instruction_eval_v1_results.md.
+  - name: Labeling Guidelines for Instruction Data
+    steps:
+    - Draft initial annotation rules in ownCloud /work/{ws}/instruction_labeling_guidelines_v1.md
+      for filtering and tagging instruction-response pairs.
+    - Apply the rules in ownCloud /work/{ws}/instruction_labeling_guidelines_v1.md
+      to label a pilot set saved as training-data/{ws}/instruction_corpus_v1/labeled_sample_v1.jsonl.
+    - Revise ownCloud /work/{ws}/instruction_labeling_guidelines_v1.md based on inconsistencies
+      found in training-data/{ws}/instruction_corpus_v1/labeled_sample_v1.jsonl.
+    - Use the updated ownCloud /work/{ws}/instruction_labeling_guidelines_v1.md to
+      produce training-data/{ws}/instruction_corpus_v1/labeled_sample_v2.jsonl.
+  - name: Training Run Tracking
+    steps:
+    - Open a Plane ticket {ws}-214 to track a new fine-tuning experiment and attach
+      the plan in ownCloud /work/{ws}/ft_experiment_plan_v1.md.
+    - Update Plane ticket {ws}-214 with dataset details and link the dataset artifact
+      training-data/{ws}/instruction_corpus_v1/minhash_filtered_v1.jsonl.
+    - Add training configuration notes to Plane ticket {ws}-214 referencing models/llama-finetune/{ws}/configs/lora_baseline_v1.yaml.
+    - After the run completes, update Plane ticket {ws}-214 with evaluation outcomes
+      and link the registered model {ws}/lora-baseline-v1.
+  - name: Support Ticket Corpus v1
+    steps:
+    - Create a script training-data/{ws}/support_tickets/prepare_support_ticket_corpus.py
+      to pull historical ticket text from exported CSVs and normalize them into JSONL
+      for fine-tuning.
+    - Run and extend prepare_support_ticket_corpus.py to generate the dataset training-data/{ws}/support_tickets/support_ticket_corpus_v1.jsonl
+      with cleaned prompt/response pairs.
+    - Add a deduplication pass inside training-data/{ws}/support_tickets/prepare_support_ticket_corpus.py
+      and regenerate training-data/{ws}/support_tickets/support_ticket_corpus_v1_dedup.jsonl.
+    - Create models/llama-finetune/{ws}/support_ticket_lora_v1.yaml that references
+      training-data/{ws}/support_tickets/support_ticket_corpus_v1_dedup.jsonl and
+      launch a training run logged under models/llama-finetune/{ws}/runs/support_ticket_lora_v1.
+  - name: Documentation QA Dataset
+    steps:
+    - Compile internal docs into training-data/{ws}/doc_qa/build_doc_qa_dataset.py
+      that converts Markdown files into question–answer training examples.
+    - Execute build_doc_qa_dataset.py to produce training-data/{ws}/doc_qa/doc_qa_dataset_v1.jsonl
+      for model training.
+    - Extend training-data/{ws}/doc_qa/build_doc_qa_dataset.py to add automatic answer
+      span validation and regenerate training-data/{ws}/doc_qa/doc_qa_dataset_v2_validated.jsonl.
+    - Create models/llama-finetune/{ws}/doc_qa_lora_v1.yaml using training-data/{ws}/doc_qa/doc_qa_dataset_v2_validated.jsonl
+      and register the training job config in models/llama-finetune/{ws}/runs/doc_qa_lora_v1.
+  - name: Chat Tone Alignment Set
+    steps:
+    - Write training-data/{ws}/chat_tone/label_chat_tone.py to label exported RocketChat
+      conversations with tone/style tags for supervised tuning.
+    - Run label_chat_tone.py to generate training-data/{ws}/chat_tone/chat_tone_labeled_v1.jsonl.
+    - Add filtering and class balancing to training-data/{ws}/chat_tone/label_chat_tone.py
+      and regenerate training-data/{ws}/chat_tone/chat_tone_labeled_balanced_v2.jsonl.
+    - Create models/llama-finetune/{ws}/chat_tone_lora_v1.yaml referencing training-data/{ws}/chat_tone/chat_tone_labeled_balanced_v2.jsonl
+      and submit the training job recorded at models/llama-finetune/{ws}/runs/chat_tone_lora_v1.
+  - name: Prompt Dedup Pipeline
+    steps:
+    - Implement training-data/{ws}/dedup/prompt_dedup_pipeline.py to hash and cluster
+      similar prompts from mixed datasets.
+    - Run prompt_dedup_pipeline.py to produce training-data/{ws}/dedup/prompt_clusters_v1.json
+      and a cleaned dataset training-data/{ws}/dedup/prompts_deduped_v1.jsonl.
+    - Extend training-data/{ws}/dedup/prompt_dedup_pipeline.py to include semantic
+      similarity filtering using embeddings and regenerate training-data/{ws}/dedup/prompts_deduped_semantic_v2.jsonl.
+    - Create models/llama-finetune/{ws}/dedup_prompt_lora_v1.yaml pointing to training-data/{ws}/dedup/prompts_deduped_semantic_v2.jsonl
+      and launch the run logged in models/llama-finetune/{ws}/runs/dedup_prompt_lora_v1.
+  - name: Evaluation Benchmark Pack
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/baseline_eval_set_builder.py to assemble
+      prompts and expected outputs from existing datasets for evaluation.
+    - Run baseline_eval_set_builder.py to generate eval/red-team-suite/configs/{ws}/baseline_eval_set_v1.jsonl.
+    - Extend baseline_eval_set_builder.py to add category labels and difficulty tiers
+      and regenerate eval/red-team-suite/configs/{ws}/baseline_eval_set_v2_labeled.jsonl.
+    - Register eval/red-team-suite/configs/{ws}/baseline_eval_set_v2_labeled.jsonl
+      with the eval-server by creating eval/red-team-suite/configs/{ws}/baseline_eval_run_config_v1.yaml
+      referencing that dataset.
+  - name: Plane Issue Summarization Model
+    steps:
+    - Write training-data/{ws}/plane_issues/extract_issue_summaries.py to convert
+      exported Plane issue threads into instruction–summary pairs.
+    - Execute extract_issue_summaries.py to produce training-data/{ws}/plane_issues/issue_summary_dataset_v1.jsonl.
+    - Modify training-data/{ws}/plane_issues/extract_issue_summaries.py to include
+      metadata fields (priority, labels) and regenerate training-data/{ws}/plane_issues/issue_summary_dataset_v2_meta.jsonl.
+    - Create models/llama-finetune/{ws}/issue_summary_lora_v1.yaml referencing training-data/{ws}/plane_issues/issue_summary_dataset_v2_meta.jsonl
+      and register the run under models/llama-finetune/{ws}/runs/issue_summary_lora_v1.
+evaluations:
+  team: evaluations
+  arcs:
+  - name: jailbreak prompt robustness sweep
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/jailbreak_prompt_sweep_v1.yaml defining
+      a baseline set of jailbreak-style prompts and evaluation metrics.
+    - Extend the eval/red-team-suite/configs/{ws}/jailbreak_prompt_sweep_v1.yaml you
+      created with 20 additional adversarial prompt variants and commit it to your
+      {ws} branch in GitLab.
+    - Submit a checkpoint run to the eval-server using eval/red-team-suite/configs/{ws}/jailbreak_prompt_sweep_v1.yaml
+      and save the run summary to ownCloud /work/{ws}/jailbreak_prompt_sweep_v1_run1.md.
+    - Review the results in /work/{ws}/jailbreak_prompt_sweep_v1_run1.md and update
+      eval/red-team-suite/configs/{ws}/jailbreak_prompt_sweep_v1.yaml with adjusted
+      scoring thresholds based on observed outcomes.
+  - name: eval latency triage batch
+    steps:
+    - Create ownCloud /work/{ws}/latency_triage_batch1.md listing models and endpoints
+      to profile for evaluation latency.
+    - Implement the measurement plan described in /work/{ws}/latency_triage_batch1.md
+      by creating eval/red-team-suite/configs/{ws}/latency_probe_batch1.yaml with
+      timed request settings.
+    - Run the configuration in eval/red-team-suite/configs/{ws}/latency_probe_batch1.yaml
+      on the eval-server and append the collected latency metrics to /work/{ws}/latency_triage_batch1.md.
+    - File a Plane ticket {ws}-latency-batch1 referencing the latency anomalies documented
+      in /work/{ws}/latency_triage_batch1.md.
+  - name: eval log audit for prompt-injection cases
+    steps:
+    - Open Plane ticket {ws}-promptlog-audit and draft the audit checklist in ownCloud
+      /work/{ws}/prompt_log_audit_checklist.md.
+    - Use the criteria in /work/{ws}/prompt_log_audit_checklist.md to build eval/red-team-suite/configs/{ws}/prompt_log_audit_v1.yaml
+      for targeted log replay evaluation.
+    - Execute eval/red-team-suite/configs/{ws}/prompt_log_audit_v1.yaml on the eval-server
+      and record flagged cases in ownCloud /work/{ws}/prompt_log_audit_results_v1.md.
+    - Update Plane ticket {ws}-promptlog-audit with findings summarized from /work/{ws}/prompt_log_audit_results_v1.md.
+  - name: model registry checkpoint comparison
+    steps:
+    - Create ownCloud /work/{ws}/checkpoint_compare_plan.md describing which model
+      registry checkpoints will be compared and which eval metrics will be used.
+    - Based on /work/{ws}/checkpoint_compare_plan.md, author eval/red-team-suite/configs/{ws}/checkpoint_compare_v1.yaml
+      specifying the checkpoints and evaluation tasks.
+    - Run the comparison using eval/red-team-suite/configs/{ws}/checkpoint_compare_v1.yaml
+      on the eval-server and store the metric outputs in ownCloud /work/{ws}/checkpoint_compare_results_v1.md.
+    - Extend /work/{ws}/checkpoint_compare_results_v1.md with a short analysis section
+      recommending which checkpoint should advance to the next eval cycle.
+  - name: harmful-content classifier sanity checks
+    steps:
+    - Draft test coverage notes in ownCloud /work/{ws}/harmful_classifier_sanity_plan.md
+      outlining categories and expected responses.
+    - Convert the cases in /work/{ws}/harmful_classifier_sanity_plan.md into eval/red-team-suite/configs/{ws}/harmful_classifier_sanity_v1.yaml
+      for automated evaluation.
+    - Run eval/red-team-suite/configs/{ws}/harmful_classifier_sanity_v1.yaml on the
+      eval-server and document mismatches in ownCloud /work/{ws}/harmful_classifier_sanity_results_v1.md.
+    - Update eval/red-team-suite/configs/{ws}/harmful_classifier_sanity_v1.yaml to
+      add regression tests derived from the issues recorded in /work/{ws}/harmful_classifier_sanity_results_v1.md.
+  - name: eval suite documentation refresh
+    steps:
+    - Write initial documentation in ownCloud /work/{ws}/eval_suite_notes_v1.md summarizing
+      current red-team-suite configs used in your workspace.
+    - Create a companion configuration index at eval/red-team-suite/configs/{ws}/config_index_v1.md
+      based on the descriptions in /work/{ws}/eval_suite_notes_v1.md.
+    - Update /work/{ws}/eval_suite_notes_v1.md with direct links and usage examples
+      referencing eval/red-team-suite/configs/{ws}/config_index_v1.md.
+    - Email a short summary to the team referencing /work/{ws}/eval_suite_notes_v1.md
+      and archive the sent message text in ownCloud /work/{ws}/eval_suite_notes_email.txt.
+  - name: jailbreak prompt-set refresh
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/jailbreak_promptset_v3.yaml defining
+      40 updated benign jailbreak-style prompts for robustness testing.
+    - Extend eval/red-team-suite/configs/{ws}/jailbreak_promptset_v3.yaml with metadata
+      fields (category, risk_tag, expected_behavior) for each prompt.
+    - Submit a checkpoint run on the eval-server using eval/red-team-suite/configs/{ws}/jailbreak_promptset_v3.yaml
+      and save the run summary to ownCloud /work/{ws}/jailbreak_promptset_v3_run1.md.
+    - Review the metrics in /work/{ws}/jailbreak_promptset_v3_run1.md and append a
+      short analysis section highlighting prompts that triggered unexpected responses.
+  - name: eval log audit
+    steps:
+    - Download the last week of evaluation logs from the eval-server and save a filtered
+      subset to ownCloud /work/{ws}/eval_log_audit_wk32.log.
+    - Parse /work/{ws}/eval_log_audit_wk32.log for warning and retry patterns and
+      summarize counts in /work/{ws}/eval_log_audit_wk32_summary.md.
+    - Extend /work/{ws}/eval_log_audit_wk32_summary.md with example log excerpts from
+      /work/{ws}/eval_log_audit_wk32.log that illustrate the most common warning types.
+    - Open a Plane ticket {ws}-log-audit-wk32 referencing /work/{ws}/eval_log_audit_wk32_summary.md
+      and list follow-up checks for the next audit.
+  - name: safety eval config expansion
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/safety_eval_v1.yaml defining a small
+      suite of refusal and policy-compliance prompts.
+    - Extend eval/red-team-suite/configs/{ws}/safety_eval_v1.yaml with scoring rules
+      and pass/fail thresholds for each prompt group.
+    - Run the eval-server with eval/red-team-suite/configs/{ws}/safety_eval_v1.yaml
+      and save the results to ownCloud /work/{ws}/safety_eval_v1_results.md.
+    - Review /work/{ws}/safety_eval_v1_results.md and update eval/red-team-suite/configs/{ws}/safety_eval_v1.yaml
+      to adjust thresholds that produced ambiguous scores.
+  - name: model registry checkpoint review
+    steps:
+    - Export the current registry snapshot for the latest internal model to ownCloud
+      /work/{ws}/model_registry_review_aug.json.
+    - Inspect /work/{ws}/model_registry_review_aug.json and document missing metadata
+      fields in /work/{ws}/model_registry_review_aug_notes.md.
+    - Draft a cleanup checklist in /work/{ws}/model_registry_review_aug_notes.md referencing
+      specific entries found in /work/{ws}/model_registry_review_aug.json.
+    - File Plane ticket {ws}-registry-metadata-cleanup summarizing the checklist from
+      /work/{ws}/model_registry_review_aug_notes.md.
+  - name: evaluation dataset sanity check
+    steps:
+    - Collect a sample of 100 prompts from recent runs and save them to ownCloud /work/{ws}/dataset_sanity_sample_v1.json.
+    - Review /work/{ws}/dataset_sanity_sample_v1.json and tag malformed or duplicate
+      prompts in a new file /work/{ws}/dataset_sanity_sample_v1_review.md.
+    - Create eval/red-team-suite/configs/{ws}/dataset_sanity_recheck.yaml using the
+      problematic cases listed in /work/{ws}/dataset_sanity_sample_v1_review.md.
+    - Execute a validation run with eval/red-team-suite/configs/{ws}/dataset_sanity_recheck.yaml
+      and append outcome notes to /work/{ws}/dataset_sanity_sample_v1_review.md.
+  - name: Latency regression eval config and audit
+    steps:
+    - Create eval/red-team-suite/configs/{ws}/latency_regression_v1.yaml defining
+      a baseline latency-focused eval suite for three representative prompts per model
+      size.
+    - Extend the eval/red-team-suite/configs/{ws}/latency_regression_v1.yaml you created
+      by adding timeout thresholds, per-model latency tags, and a batch-size parameter
+      for controlled load testing.
+    - Run the eval-server using the eval/red-team-suite/configs/{ws}/latency_regression_v1.yaml
+      you extended and save the summarized results and observations to ownCloud at
+      /work/{ws}/latency_regression_v1_report.md.
+    - Review eval-server logs for the runs documented in /work/{ws}/latency_regression_v1_report.md
+      and append a short latency triage section with suspected bottlenecks and timestamps
+      directly to that same report.
+hr:
+  team: hr
+  arcs:
+  - name: New Hire Onboarding Checklist for Marketing Coordinator
+    steps:
+    - Draft the onboarding checklist in ownCloud at /work/{ws}/marketing_coordinator_onboarding_checklist.md
+      covering accounts, benefits enrollment, and first-week tasks.
+    - Revise the /work/{ws}/marketing_coordinator_onboarding_checklist.md you created
+      by adding equipment pickup details and a day‑1 schedule section.
+    - Email the hiring manager a review request attaching the /work/{ws}/marketing_coordinator_onboarding_checklist.md
+      and capture their feedback in the same document.
+  - name: PTO Policy Clarification Update
+    steps:
+    - Create a policy draft in ownCloud at /work/{ws}/pto_policy_clarification_v1.md
+      explaining carryover limits and approval expectations.
+    - Update the /work/{ws}/pto_policy_clarification_v1.md you created with examples
+      from recent PTO questions raised in HR inbox emails.
+    - Share the updated /work/{ws}/pto_policy_clarification_v1.md in RocketChat HR
+      channel for comments and record suggested edits at the bottom of the document.
+    - Incorporate the RocketChat feedback into /work/{ws}/pto_policy_clarification_v1.md
+      and email the final draft to leadership for sign‑off.
+  - name: Quarterly Headcount Tracking Sheet
+    steps:
+    - Build a headcount tracker in ownCloud at /work/{ws}/q3_headcount_tracker.xlsx
+      listing current roles, open reqs, and start dates.
+    - Extend the /work/{ws}/q3_headcount_tracker.xlsx you created by adding a tab
+      projecting hires by department through the end of the quarter.
+    - Open a Plane ticket {ws}-301 summarizing insights from /work/{ws}/q3_headcount_tracker.xlsx
+      and attach the file for leadership review.
+    - Update the Plane ticket {ws}-301 with revised projections after adjusting the
+      /work/{ws}/q3_headcount_tracker.xlsx based on leadership feedback.
+  - name: Employee Offboarding Process Refresh
+    steps:
+    - Draft an offboarding checklist in ownCloud at /work/{ws}/employee_offboarding_process_v1.md
+      covering exit interviews, benefits termination, and equipment return.
+    - Expand the /work/{ws}/employee_offboarding_process_v1.md you created with a
+      detailed timeline for actions 2 weeks before and on the final day.
+    - Post a RocketChat message linking the /work/{ws}/employee_offboarding_process_v1.md
+      asking managers to review and comment on the steps.
+    - Incorporate manager feedback from the RocketChat thread into /work/{ws}/employee_offboarding_process_v1.md
+      and email the updated version to HR leadership.
+  - name: Annual Review Coordination Plan
+    steps:
+    - Write the coordination plan in ownCloud at /work/{ws}/annual_review_cycle_plan.md
+      outlining timeline, manager reminders, and calibration meetings.
+    - Extend the /work/{ws}/annual_review_cycle_plan.md you created by adding a calendar
+      of reminder emails and review submission deadlines.
+    - Send an email to department leads attaching /work/{ws}/annual_review_cycle_plan.md
+      and request confirmation of reviewer assignments.
+    - Record the confirmed reviewer assignments at the end of /work/{ws}/annual_review_cycle_plan.md
+      based on replies to the email you sent.
+  - name: Benefits Enrollment FAQ
+    steps:
+    - Compile common questions into ownCloud at /work/{ws}/benefits_enrollment_faq_v1.md
+      using recent HR inbox inquiries as the starting list.
+    - Expand the /work/{ws}/benefits_enrollment_faq_v1.md you created with step‑by‑step
+      enrollment instructions and links to forms.
+    - Share the /work/{ws}/benefits_enrollment_faq_v1.md in RocketChat with the People
+      Ops channel and collect clarification requests in a comments section.
+    - Publish the revised /work/{ws}/benefits_enrollment_faq_v1.md after incorporating
+      RocketChat feedback and email the document to all employees.
+  - name: New Hire Onboarding Checklist for Data Analyst
+    steps:
+    - Create an onboarding checklist document for the incoming Data Analyst in ownCloud
+      at /work/{ws}/onboarding/data-analyst-onboarding-checklist.md outlining accounts,
+      orientation meetings, and first‑week tasks.
+    - Extend the /work/{ws}/onboarding/data-analyst-onboarding-checklist.md you created
+      by adding confirmed start date details and scheduled orientation sessions, then
+      email the checklist to the hiring manager for review.
+    - Update the /work/{ws}/onboarding/data-analyst-onboarding-checklist.md you emailed
+      by incorporating the manager’s feedback and post a RocketChat message linking
+      the document to coordinate IT and facilities tasks.
+    - Create a Plane ticket {ws}-onboard-data-analyst referencing the finalized /work/{ws}/onboarding/data-analyst-onboarding-checklist.md
+      and track completion of each onboarding item.
+  - name: Employee Offboarding Coordination
+    steps:
+    - Draft an offboarding task tracker in ownCloud at /work/{ws}/offboarding/jordan-offboarding-tracker.md
+      listing equipment return, benefits notice, and exit interview steps.
+    - Expand the /work/{ws}/offboarding/jordan-offboarding-tracker.md you created
+      by adding the confirmed last working day and send an email thread titled "Jordan
+      Offboarding Plan" attaching the tracker to payroll and IT.
+    - Update the /work/{ws}/offboarding/jordan-offboarding-tracker.md referenced in
+      the "Jordan Offboarding Plan" email with responses from payroll and IT and note
+      their responsibilities.
+    - Create Plane ticket {ws}-offboard-jordan linking the updated /work/{ws}/offboarding/jordan-offboarding-tracker.md
+      to monitor completion of the offboarding steps.
+  - name: Compensation Cycle Preparation Notes
+    steps:
+    - Create a compensation cycle preparation document in ownCloud at /work/{ws}/comp/comp-cycle-prep-notes.md
+      outlining timeline, manager checkpoints, and data collection steps.
+    - Extend the /work/{ws}/comp/comp-cycle-prep-notes.md you created by adding a
+      draft schedule of review meetings and email it to finance partners for confirmation.
+    - Update the /work/{ws}/comp/comp-cycle-prep-notes.md referenced in your finance
+      email by incorporating their confirmed dates and posting a RocketChat message
+      summarizing the schedule.
+    - Open Plane ticket {ws}-comp-cycle-prep referencing the updated /work/{ws}/comp/comp-cycle-prep-notes.md
+      to track readiness tasks before the compensation cycle begins.
+  - name: Headcount Request Tracking for Q3
+    steps:
+    - Create a headcount tracking sheet in ownCloud at /work/{ws}/headcount/q3-headcount-requests.md
+      listing each department’s requested roles and status.
+    - Update the /work/{ws}/headcount/q3-headcount-requests.md you created with initial
+      requests gathered via email from department leads and note any missing details.
+    - Send an email thread titled "Q3 Headcount Requests Summary" attaching the updated
+      /work/{ws}/headcount/q3-headcount-requests.md and request confirmation from
+      finance.
+    - Revise the /work/{ws}/headcount/q3-headcount-requests.md referenced in the "Q3
+      Headcount Requests Summary" email with finance feedback and post the final link
+      in RocketChat for leadership visibility.
+  - name: Interview Panel Coordination for Product Manager Role
+    steps:
+    - Draft an interview coordination plan in ownCloud at /work/{ws}/recruiting/pm-interview-panel-plan.md
+      listing proposed panelists, interview stages, and scheduling windows.
+    - Expand the /work/{ws}/recruiting/pm-interview-panel-plan.md you created by confirming
+      panelist availability via email and recording their time slots in the document.
+    - Update the /work/{ws}/recruiting/pm-interview-panel-plan.md referenced in your
+      availability emails with the finalized panel schedule and interview sequence.
+    - Share the finalized /work/{ws}/recruiting/pm-interview-panel-plan.md in RocketChat
+      and open Plane ticket {ws}-pm-interview-coordination to track completion of
+      each scheduled interview stage.
+  - name: New Hire Onboarding Checklist Refresh for Q3
+    steps:
+    - Draft a Q3 onboarding checklist in ownCloud at /work/{ws}/q3_onboarding_checklist_v1.md
+      covering account setup, benefits enrollment, first-week meetings, and equipment
+      confirmation.
+    - Review and extend the /work/{ws}/q3_onboarding_checklist_v1.md you created by
+      adding a role-specific section for engineering vs. operations and save the updated
+      version as /work/{ws}/q3_onboarding_checklist_v2.md.
+    - Create Plane ticket {ws}-onboard-q3-rollout summarizing the process and attach
+      the /work/{ws}/q3_onboarding_checklist_v2.md you created to track rollout and
+      feedback.
+    - Email hiring managers a rollout note referencing the Plane ticket {ws}-onboard-q3-rollout
+      and linking the /work/{ws}/q3_onboarding_checklist_v2.md so they can review
+      and comment before adoption.
+legal:
+  team: legal
+  arcs:
+  - name: NDA template refresh
+    steps:
+    - Draft updated NDA template and save it as ownCloud /work/{ws}/nda_template_v3.docx.
+    - Review the clauses in /work/{ws}/nda_template_v3.docx and add jurisdiction and
+      term-length options, saving the revision as /work/{ws}/nda_template_v3_reviewed.docx.
+    - Email /work/{ws}/nda_template_v3_reviewed.docx to the business team for comments
+      and log feedback in ownCloud /work/{ws}/nda_template_v3_feedback.md.
+    - Incorporate the notes in /work/{ws}/nda_template_v3_feedback.md into the contract
+      and publish the final version as /work/{ws}/nda_template_v3_final.docx.
+  - name: Vendor MSA review for new supplier
+    steps:
+    - Save the supplier’s draft agreement and your initial notes in ownCloud /work/{ws}/acme_msa_review_notes.md.
+    - Expand the risk analysis in /work/{ws}/acme_msa_review_notes.md and draft proposed
+      redlines saved as /work/{ws}/acme_msa_redlines.docx.
+    - Email /work/{ws}/acme_msa_redlines.docx to the vendor and record their responses
+      in ownCloud /work/{ws}/acme_msa_vendor_feedback.md.
+    - Update the negotiation summary using /work/{ws}/acme_msa_vendor_feedback.md
+      and attach it to Plane ticket {ws}-301 for internal approval tracking.
+  - name: Data Processing Agreement (DPA) assessment
+    steps:
+    - Create an assessment document for the vendor’s DPA and store it as ownCloud
+      /work/{ws}/vendor_dpa_assessment_v1.md.
+    - Add clause-by-clause compliance notes to /work/{ws}/vendor_dpa_assessment_v1.md
+      and save the expanded version as /work/{ws}/vendor_dpa_assessment_v2.md.
+    - Draft required amendment language based on /work/{ws}/vendor_dpa_assessment_v2.md
+      and save it as /work/{ws}/vendor_dpa_amendment_draft.docx.
+    - Email /work/{ws}/vendor_dpa_amendment_draft.docx to the vendor and summarize
+      the outreach in Plane ticket {ws}-322.
+  - name: IP filing preparation for new product feature
+    steps:
+    - Write an invention disclosure summary and store it in ownCloud /work/{ws}/feature_invention_disclosure.md.
+    - Expand the technical description and prior-art notes in /work/{ws}/feature_invention_disclosure.md
+      and save the updated draft as /work/{ws}/feature_invention_disclosure_v2.md.
+    - Use /work/{ws}/feature_invention_disclosure_v2.md to draft a patent filing outline
+      saved as /work/{ws}/patent_outline_feature.docx.
+    - Email /work/{ws}/patent_outline_feature.docx to outside counsel and record correspondence
+      notes in ownCloud /work/{ws}/patent_counsel_followup.md.
+  - name: Data retention policy update
+    steps:
+    - Draft an updated retention policy proposal and save it as ownCloud /work/{ws}/data_retention_policy_v1.md.
+    - Review regulations and extend /work/{ws}/data_retention_policy_v1.md with department-specific
+      retention tables, saving as /work/{ws}/data_retention_policy_v2.md.
+    - Share /work/{ws}/data_retention_policy_v2.md in RocketChat and record stakeholder
+      comments in ownCloud /work/{ws}/data_retention_policy_feedback.md.
+    - Incorporate the notes from /work/{ws}/data_retention_policy_feedback.md and
+      publish the finalized document as /work/{ws}/data_retention_policy_final.md.
+  - name: Vendor agreement tracking setup
+    steps:
+    - Create a tracking sheet for active vendor contracts and store it as ownCloud
+      /work/{ws}/vendor_agreement_tracker_v1.xlsx.
+    - Add renewal dates and risk flags to /work/{ws}/vendor_agreement_tracker_v1.xlsx
+      and save the updated sheet as /work/{ws}/vendor_agreement_tracker_v2.xlsx.
+    - Review /work/{ws}/vendor_agreement_tracker_v2.xlsx and open Plane tickets for
+      upcoming renewals starting with ticket {ws}-347 referencing the sheet.
+    - Post a RocketChat message summarizing the renewal items listed in /work/{ws}/vendor_agreement_tracker_v2.xlsx
+      and link ticket {ws}-347 for follow-up.
+  - name: Vendor MSA Review – Data Analytics Provider
+    steps:
+    - Draft initial review notes for the vendor’s proposed MSA and save them in ownCloud
+      as /work/{ws}/analytics_vendor_msa_review_v1.md.
+    - Expand the issues section in /work/{ws}/analytics_vendor_msa_review_v1.md with
+      clause-by-clause comments on liability, indemnity, and termination terms.
+    - Update /work/{ws}/analytics_vendor_msa_review_v1.md with proposed redline language
+      and send the document via email to the vendor contact requesting revisions.
+    - Create a Plane ticket {ws}-301 summarizing the negotiation status and attach
+      the latest /work/{ws}/analytics_vendor_msa_review_v1.md for internal tracking.
+  - name: NDA Processing – Research Collaboration
+    steps:
+    - Draft a mutual NDA template tailored for the research partner and save it as
+      /work/{ws}/research_partner_mnda_v1.docx in ownCloud.
+    - Revise /work/{ws}/research_partner_mnda_v1.docx to incorporate the partner’s
+      requested confidentiality term changes received via email.
+    - Send the updated /work/{ws}/research_partner_mnda_v1.docx via email for signature
+      and record the status in a new Plane ticket {ws}-302 referencing the document.
+    - Post an update in RocketChat linking ticket {ws}-302 and attach the executed
+      version of /work/{ws}/research_partner_mnda_v1.docx once received.
+  - name: Vendor Agreement Tracker Setup
+    steps:
+    - Create a vendor agreement tracking spreadsheet in ownCloud at /work/{ws}/vendor_agreement_tracker_v1.xlsx
+      listing active contracts and renewal dates.
+    - Add columns for governing law, liability caps, and renewal notice periods in
+      /work/{ws}/vendor_agreement_tracker_v1.xlsx.
+    - Review existing agreements and populate missing entries in /work/{ws}/vendor_agreement_tracker_v1.xlsx
+      based on contract PDFs in your workspace.
+    - Email the updated /work/{ws}/vendor_agreement_tracker_v1.xlsx to procurement
+      and open Plane ticket {ws}-304 to maintain quarterly updates.
+  - name: IP Filing Preparation – New Model Optimization Method
+    steps:
+    - Draft an invention disclosure summary and store it as /work/{ws}/model_optimization_invention_disclosure_v1.md
+      in ownCloud.
+    - Expand the technical description and potential claims section in /work/{ws}/model_optimization_invention_disclosure_v1.md
+      after reviewing inventor notes.
+    - Email the updated /work/{ws}/model_optimization_invention_disclosure_v1.md to
+      outside patent counsel requesting a preliminary patentability review.
+    - Record counsel outreach and attach /work/{ws}/model_optimization_invention_disclosure_v1.md
+      in Plane ticket {ws}-305 to track the filing process.
+  - name: Conference Travel Compliance Review
+    steps:
+    - Draft a short compliance checklist for conference travel approvals and save
+      it as /work/{ws}/conference_travel_compliance_checklist_v1.md.
+    - Add export-control and data-sharing guidance to /work/{ws}/conference_travel_compliance_checklist_v1.md
+      for employees presenting technical material.
+    - Share /work/{ws}/conference_travel_compliance_checklist_v1.md in RocketChat
+      requesting comments from HR and the security team.
+    - Book a Plane ticket for the legal compliance workshop and attach /work/{ws}/conference_travel_compliance_checklist_v1.md
+      to Plane ticket {ws}-306 documenting the policy rollout discussion.
+  - name: Vendor DPA Review and Approval Prep
+    steps:
+    - Draft an initial vendor data‑processing agreement review memo summarizing risks
+      and required clauses in ownCloud at /work/{ws}/legal/vendor_dpa_review_v1.docx
+      based on the vendor’s submitted DPA.
+    - Revise the /work/{ws}/legal/vendor_dpa_review_v1.docx you created by adding
+      a clause-by-clause compliance assessment and a proposed redline summary for
+      negotiation.
+    - Email the vendor contact requesting clarifications on the issues listed in /work/{ws}/legal/vendor_dpa_review_v1.docx
+      and save the sent message thread as /work/{ws}/legal/vendor_dpa_review_vendor_email.eml
+      in ownCloud.
+    - Update /work/{ws}/legal/vendor_dpa_review_v1.docx using the responses captured
+      in /work/{ws}/legal/vendor_dpa_review_vendor_email.eml and finalize the memo
+      for internal approval.
+platform:
+  team: platform
+  arcs:
+  - name: GitLab CI template for training-pipeline smoke tests
+    steps:
+    - Create GitLab CI template infra/training-pipeline/ci/{ws}/smoke_test_template.yml
+      defining a minimal dataset load and model startup check.
+    - Extend the infra/training-pipeline/ci/{ws}/smoke_test_template.yml you created
+      to add a job that runs the pipeline against a tiny synthetic dataset.
+    - Update the infra/training-pipeline/ci/{ws}/smoke_test_template.yml you created
+      to export logs and metrics artifacts for later debugging.
+    - Document usage examples for the infra/training-pipeline/ci/{ws}/smoke_test_template.yml
+      you created in ownCloud /work/{ws}/training-pipeline-smoke-tests.md.
+  - name: Secrets-store rotation helper
+    steps:
+    - Create a small rotation helper script at infra/secrets-store/tools/{ws}/rotate_eval_server_tokens.py
+      that reads token metadata and prints upcoming expirations.
+    - Extend the infra/secrets-store/tools/{ws}/rotate_eval_server_tokens.py you created
+      to generate replacement tokens and write a rotation report JSON.
+    - Add logging and dry-run support to the infra/secrets-store/tools/{ws}/rotate_eval_server_tokens.py
+      you created so rotations can be previewed safely.
+    - Write operational instructions referencing infra/secrets-store/tools/{ws}/rotate_eval_server_tokens.py
+      in ownCloud /work/{ws}/eval-token-rotation-runbook.md.
+  - name: Eval-server monitoring dashboard
+    steps:
+    - Create a dashboard config file monitoring/dashboards/{ws}/eval_server_latency_dashboard.json
+      with basic latency and request-rate panels.
+    - Extend the monitoring/dashboards/{ws}/eval_server_latency_dashboard.json you
+      created to include error-rate and queue-depth panels.
+    - Update the monitoring/dashboards/{ws}/eval_server_latency_dashboard.json you
+      created to add alert thresholds and annotations for deploy events.
+    - Document panel meanings and alert guidance for monitoring/dashboards/{ws}/eval_server_latency_dashboard.json
+      in ownCloud /work/{ws}/eval-server-monitoring-notes.md.
+  - name: Model registry cleanup automation
+    steps:
+    - Create a maintenance script at infra/model-registry/tools/{ws}/stale_model_audit.py
+      that lists models unused for 90+ days.
+    - Extend the infra/model-registry/tools/{ws}/stale_model_audit.py you created
+      to output a CSV report of stale models and storage usage.
+    - Update the infra/model-registry/tools/{ws}/stale_model_audit.py you created
+      to support tagging stale models with a "candidate_cleanup" label via the registry
+      API.
+    - Write a short cleanup workflow referencing infra/model-registry/tools/{ws}/stale_model_audit.py
+      in ownCloud /work/{ws}/model-registry-cleanup-process.md.
+  - name: Audit-collector log normalization
+    steps:
+    - Create a parser module infra/audit-collector/parsers/{ws}/gitlab_event_normalizer.py
+      that converts GitLab webhook events into a normalized JSON schema.
+    - Extend the infra/audit-collector/parsers/{ws}/gitlab_event_normalizer.py you
+      created to also normalize RocketChat message events into the same schema.
+    - Add unit-test fixtures to infra/audit-collector/tests/{ws}/test_gitlab_event_normalizer.py
+      validating the outputs of gitlab_event_normalizer.py you created.
+    - Document the normalized fields produced by infra/audit-collector/parsers/{ws}/gitlab_event_normalizer.py
+      in ownCloud /work/{ws}/audit-event-schema-notes.md.
+  - name: Plane infra ticket triage workflow
+    steps:
+    - Create a triage checklist document at ownCloud /work/{ws}/plane-infra-triage-checklist.md
+      describing steps for reviewing new Plane infra tickets.
+    - Open ticket {ws}-301 in Plane referencing the triage checklist in /work/{ws}/plane-infra-triage-checklist.md
+      and track improvements to the process.
+    - Update the /work/{ws}/plane-infra-triage-checklist.md you created with categories
+      and tagging rules based on findings from ticket {ws}-301.
+    - Add a short automation idea section to /work/{ws}/plane-infra-triage-checklist.md
+      you updated describing potential scripts for future triage support.
+  - name: GitLab CI template for training-pipeline experiments
+    steps:
+    - Create a reusable CI template at infra/training-pipeline/{ws}/ci/training_pipeline_template.gitlab-ci.yml
+      defining basic stages (lint, build, train, artifact-upload).
+    - Extend the infra/training-pipeline/{ws}/ci/training_pipeline_template.gitlab-ci.yml
+      you created by adding a cached dataset download job and documenting required
+      variables in comments.
+    - Add a sample usage pipeline at infra/training-pipeline/{ws}/ci/example_pipeline.gitlab-ci.yml
+      that imports the infra/training-pipeline/{ws}/ci/training_pipeline_template.gitlab-ci.yml
+      you created.
+    - Update the infra/training-pipeline/{ws}/ci/example_pipeline.gitlab-ci.yml you
+      created to include a nightly scheduled training job and store its output path
+      as a CI artifact.
+  - name: Personal secrets rotation helper
+    steps:
+    - Write a rotation helper script at infra/secrets-store/{ws}/rotate_dev_tokens.py
+      that reads token IDs from a local config and rotates them via the secrets-store
+      API.
+    - Create a config file infra/secrets-store/{ws}/dev_token_list.yaml listing sample
+      token IDs and update rotate_dev_tokens.py to load entries from infra/secrets-store/{ws}/dev_token_list.yaml
+      you created.
+    - Add logging and a dry-run mode to the rotate_dev_tokens.py you updated so it
+      prints planned rotations from infra/secrets-store/{ws}/dev_token_list.yaml.
+    - Document usage and scheduling notes in ownCloud /work/{ws}/secrets-rotation-helper.md
+      referencing the rotate_dev_tokens.py you finalized.
+  - name: Monitoring dashboard prototype for eval-server jobs
+    steps:
+    - Create a dashboard definition at monitoring/{ws}/eval_server_dashboard.json
+      visualizing job duration, queue depth, and failure counts for eval-server runs.
+    - Write a small loader script at monitoring/{ws}/push_dashboard.py that uploads
+      the monitoring/{ws}/eval_server_dashboard.json you created to the monitoring
+      API.
+    - Extend the monitoring/{ws}/eval_server_dashboard.json you created by adding
+      panels for GPU utilization and per-model evaluation counts.
+    - Update the monitoring/{ws}/push_dashboard.py you wrote to validate the modified
+      monitoring/{ws}/eval_server_dashboard.json before uploading.
+  - name: Local test harness for audit-collector parsing
+    steps:
+    - Create a sample log bundle at infra/audit-collector/{ws}/sample_logs/day1_events.log
+      containing representative audit events for parsing tests.
+    - Implement a parser prototype at infra/audit-collector/{ws}/parse_audit_events.py
+      that reads infra/audit-collector/{ws}/sample_logs/day1_events.log you created
+      and outputs normalized JSON.
+    - Add unit-style checks in infra/audit-collector/{ws}/test_parser.py that run
+      parse_audit_events.py against infra/audit-collector/{ws}/sample_logs/day1_events.log
+      and verify expected fields.
+    - Extend parse_audit_events.py you wrote to support an additional event type and
+      update test_parser.py to validate it using the same sample log bundle.
+  - name: Personal deployment checklist and helper script
+    steps:
+    - Draft a deployment checklist in ownCloud /work/{ws}/eval-server-deploy-checklist.md
+      covering build, artifact verification, config update, and post-deploy checks.
+    - Create a helper script at infra/deploy/{ws}/deploy_check.py that programmatically
+      walks through the steps documented in /work/{ws}/eval-server-deploy-checklist.md
+      you wrote.
+    - Update infra/deploy/{ws}/deploy_check.py to emit a structured JSON report summarizing
+      each checklist step from /work/{ws}/eval-server-deploy-checklist.md.
+    - Add example output and usage notes to /work/{ws}/eval-server-deploy-checklist.md
+      referencing the JSON report produced by deploy_check.py.
+  - name: Model registry cleanup utility
+    steps:
+    - Write a script at infra/model-registry/{ws}/registry_cleanup.py that lists model
+      versions older than a configurable retention window.
+    - Create a config file infra/model-registry/{ws}/cleanup_policy.yaml defining
+      retention days and update registry_cleanup.py to read rules from infra/model-registry/{ws}/cleanup_policy.yaml.
+    - Extend the registry_cleanup.py you updated to generate a report file infra/model-registry/{ws}/cleanup_report.json
+      based on the rules in cleanup_policy.yaml.
+    - Write documentation in ownCloud /work/{ws}/model-registry-cleanup.md explaining
+      how to run registry_cleanup.py and interpret the cleanup_report.json it produces.

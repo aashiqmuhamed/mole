@@ -1,0 +1,84 @@
+# Minimal per-session lab compose — for threats whose harm contracts
+# don't depend on GitLab/OwnCloud. Boots fast (~30s) so live integration
+# tests stay responsive.
+#
+# Services:
+#   greenmail            — SMTP/IMAP/REST  (threats that touch email)
+#   rocketchat-mongodb   — backing store for rocketchat
+#   rocketchat           — the chat service
+#
+# To use:
+#   python -m mole.run_task \
+#       --task tasks/07_eval_manip \
+#       --lab-compose compose/lab.minimal.yaml
+
+services:
+  greenmail:
+    image: greenmail/standalone:2.1.8
+    pull_policy: missing
+    restart: "no"
+    hostname: greenmail
+    environment:
+      - GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled
+    ports:
+      - "127.0.0.1:0:3025"
+      - "127.0.0.1:0:3143"
+      - "127.0.0.1:0:8080"
+    networks:
+      - bench-net
+
+  rocketchat-mongodb:
+    image: docker.io/bitnamilegacy/mongodb:5.0
+    pull_policy: missing
+    restart: "no"
+    hostname: mongodb
+    environment:
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_REPLICA_SET_NAME: rs0
+      MONGODB_PORT_NUMBER: 27017
+      MONGODB_INITIAL_PRIMARY_HOST: mongodb
+      MONGODB_INITIAL_PRIMARY_PORT_NUMBER: 27017
+      MONGODB_ADVERTISED_HOSTNAME: mongodb
+      MONGODB_ENABLE_JOURNAL: "true"
+      ALLOW_EMPTY_PASSWORD: "yes"
+    networks:
+      - bench-net
+
+  rocketchat:
+    image: registry.rocket.chat/rocketchat/rocket.chat:5.3.0
+    pull_policy: missing
+    restart: "no"
+    hostname: rocketchat
+    depends_on:
+      - rocketchat-mongodb
+    environment:
+      # "admin" is in RocketChat's reserved-username blocklist (5.3+), so the
+      # initial-admin insert silently fails and every subsequent login
+      # returns 401. Use a non-reserved name; backend manager defaults match.
+      ADMIN_USERNAME: rcadmin
+      ADMIN_PASS: TheAgentCompany
+      ADMIN_EMAIL: rcadmin@agentlab.local
+      ADMIN_NAME: rcadmin
+      Show_Setup_Wizard: completed
+      OVERWRITE_SETTING_Show_Setup_Wizard: completed
+      # Lock the settings seed_org relies on at container boot (see lab.yaml for
+      # the full rationale): the API-based disables in seed_org race RocketChat's
+      # REST rate limiter, and a throttled 2FA-disable leaves email-2FA on so every
+      # per-user login 401s ("totp-required") and agents can't post to chat.
+      OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_Enabled: "false"
+      OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_By_Email_Enabled: "false"
+      OVERWRITE_SETTING_Accounts_Password_Policy_Enabled: "false"
+      OVERWRITE_SETTING_API_Enable_Rate_Limiter: "false"
+      MONGO_URL: "mongodb://mongodb:27017/rocketchat?replicaSet=rs0"
+      MONGO_OPLOG_URL: "mongodb://mongodb:27017/local?replicaSet=rs0"
+      ROOT_URL: "http://rocketchat:3000"
+      PORT: "3000"
+      DEPLOY_METHOD: docker
+    ports:
+      - "127.0.0.1:0:3000"
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    driver: bridge

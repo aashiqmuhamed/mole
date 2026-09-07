@@ -1,0 +1,23 @@
+# Minimal compose used for the live-Docker integration test. Includes only
+# GreenMail so it pulls in ~40 MB rather than the 3+ GB of the full lab.yaml.
+# Validates that DockerSandbox can spin up, discover dynamic ports, and tear
+# down cleanly.
+
+services:
+  greenmail:
+    image: greenmail/standalone:2.1.8
+    pull_policy: missing
+    restart: "no"
+    hostname: greenmail
+    environment:
+      - GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled
+    ports:
+      - "127.0.0.1:0:3025"
+      - "127.0.0.1:0:3143"
+      - "127.0.0.1:0:8080"
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    driver: bridge

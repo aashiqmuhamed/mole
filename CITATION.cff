@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use Mole, please cite the paper below."
+title: "Mole: Detecting Insider Threats in AI Agents"
+abstract: >-
+  An open benchmark for detecting insider threats by AI agents in a simulated
+  frontier AI lab: 150 AI-operated accounts sharing nine stateful services over
+  30 workdays, with twelve MITRE-grounded threats, and monitors that rank
+  accounts each day under a limited review budget.
+type: software
+license: Apache-2.0
+authors:
+  - family-names: Muhamed
+    given-names: Aashiq
+    email: amuhamed@cs.cmu.edu
+    affiliation: Carnegie Mellon University
+  - family-names: Smith
+    given-names: Virginia
+    email: smithv@cs.cmu.edu
+    affiliation: Carnegie Mellon University
+preferred-citation:
+  type: article
+  title: "Mole: Detecting Insider Threats in AI Agents"
+  year: 2026
+  journal: "arXiv preprint arXiv:2609.06966"
+  url: "https://arxiv.org/abs/2609.06966"
+  authors:
+    - family-names: Muhamed
+      given-names: Aashiq
+      affiliation: Carnegie Mellon University
+    - family-names: Smith
+      given-names: Virginia
+      affiliation: Carnegie Mellon University

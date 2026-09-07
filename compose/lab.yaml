@@ -1,0 +1,277 @@
+# Per-session docker-compose for the insider-threat lab.
+#
+# The focal agent runs in the host Python process; there is no agent
+# container. Services here expose their ports on the host (dynamically
+# allocated via 127.0.0.1:0:<container_port>) so the agent connects from
+# outside. The sandbox driver discovers each port via `docker compose port`.
+#
+# Conventions:
+#   - No fixed container_name (clashes across per-session projects).
+#   - Host port "0" → dockerd picks a free one; the sandbox queries it.
+#   - All services share the bench-net bridge so service-name DNS resolves
+#     between them (e.g. eval-server can hit gitlab:8929 internally).
+#
+# Current scope: GreenMail (mail) + GitLab + OwnCloud + RocketChat.
+# Plane (project/issue tracker) is implemented as an in-process manager,
+# not a container — its 11-service upstream stack had an
+# instance-setup chicken-and-egg that blocked us from minting an API
+# key per-session. See state/plane/manager.py for the in-process
+# backend. AI-lab services (eval-server, model-registry, secrets-store)
+# are also in-process today; dockerizing them is tracked separately.
+
+services:
+  greenmail:
+    image: greenmail/standalone:2.1.8
+    pull_policy: missing
+    restart: "no"
+    hostname: greenmail
+    environment:
+      # Trust all senders; expose SMTP/IMAP/REST on standard ports.
+      - GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled
+    ports:
+      - "127.0.0.1:0:3025"    # SMTP
+      - "127.0.0.1:0:3143"    # IMAP
+      - "127.0.0.1:0:8080"    # REST / admin
+    networks:
+      - bench-net
+
+  gitlab:
+    image: ghcr.io/theagentcompany/servers-gitlab:1.0.0
+    pull_policy: missing
+    restart: "no"
+    hostname: gitlab
+    # /opt/gitlab/embedded/bin/runsvdir-start does
+    #   `echo "1000000" > /proc/sys/fs/file-max`
+    # which fails on non-privileged containers (proc/sys is RO). The
+    # failure cascades: runsv can't allocate sockets → workhorse never
+    # starts → chef reconfigure's `sv restart gitlab-workhorse` fails
+    # with "runsv not running" and the container exits(1). Verified
+    # via container log.
+    # Patches live in a bind-mounted script — see gitlab-patches.sh next
+    # to this file for details. The script applies two seds: line 37 of
+    # runsvdir-start (sysctl write) AND the gitlab-ctl reconfigure line
+    # in /assets/wrapper (insert wait for runsv before chef runs). Then
+    # it exec's the upstream wrapper.
+    #
+    # We do this via a real script rather than inline `command:` sed
+    # invocations because earlier attempts (multi-line YAML with `\`,
+    # then single-line bash -c) ran into nested YAML→shell→bash→sed
+    # quoting bugs that masked the actual bug (the wrapper race against
+    # background runsvdir-start). Diagnosed by reading container logs
+    # from a single-service warmup.
+    command: ["/gitlab-patches.sh"]
+    volumes:
+      - ./gitlab-patches.sh:/gitlab-patches.sh:ro
+      # NAMED volumes (not the image's default anonymous ones) so the world is
+      # snapshot/restore-able: a per-session project gets stable
+      # `<project>_gitlab-{config,data}` volumes that snapshot_sandbox can
+      # capture and a `--restore-world` resume can reattach to. /var/log/gitlab
+      # stays ephemeral (logs aren't world state). Docker populates a fresh
+      # named volume from the image on first mount, so cold boot is unchanged.
+      - gitlab-config:/etc/gitlab
+      - gitlab-data:/var/opt/gitlab
+    # GitLab Omnibus's `gitlab-ctl reconfigure` races runit on cold boot:
+    # workhorse's `sv restart` fires before runsv has registered the
+    # service. Observed failure rates (small samples):
+    #   512m  — fails most of the time
+    #   2g    — fails sometimes (worked on Windows Docker Desktop in
+    #           isolated probes; still failed 3/3 on Linux)
+    # Linux tmpfs is lazy-allocated — 16g consumes only what's actually
+    # written, well under 1g in practice. We're going wide here to take
+    # shm off the table as a variable. Tune down via per-host override
+    # on small hosts.
+    shm_size: '16g'
+    environment:
+      # The image's /assets/wrapper starts runsvdir-start in the background
+      # and IMMEDIATELY calls `gitlab-ctl reconfigure`. Chef's recipe
+      # issues `sv restart gitlab-workhorse` which races runsv's service
+      # registration — workhorse fails with "runsv not running" and the
+      # container exits(1). Shm size is irrelevant here (we tried up to
+      # 16g; still crashes). The actual fix is to wait between
+      # runsvdir-start and chef. The wrapper exposes the
+      # GITLAB_PRE_RECONFIGURE_SCRIPT hook for exactly this case.
+      GITLAB_PRE_RECONFIGURE_SCRIPT: |
+        echo "[wrapper pre-reconfigure] waiting for runsv to register services..."
+        # Poll until at least one runsv supervisor is up; bound by 60s.
+        # $$i so compose doesn't try to interpolate $$i as a host env var.
+        for i in $$(seq 1 60); do
+          if pgrep -x runsv >/dev/null 2>&1; then
+            echo "[wrapper pre-reconfigure] runsv present (after $${i}s)"
+            break
+          fi
+          sleep 1
+        done
+        sleep 5
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2424
+        nginx['listen_port'] = 8929
+        nginx['listen_https'] = false
+        # CONCURRENCY-CRITICAL (exact speedup lever). worker_processes=0 runs Puma in
+        # SINGLE mode (~max_threads ≈ 4 concurrent requests) — THE lab bottleneck under
+        # the agentic sim, where GitLab is ~44% of all tool calls. Cluster workers raise
+        # the concurrent-request ceiling ~Nx with IDENTICAL responses (the corpus is
+        # unchanged), converting idle GPU/TPM headroom into throughput. Default 8; ~1GB
+        # RAM/worker, so set GITLAB_PUMA_WORKERS=0 on a small box (or for the cheap boot).
+        # Measured A/B (/users/sign_in): puma=0 ~23 req/s; puma=8 ~119 (serves c=48);
+        # puma=16 ~163 (serves c=64, plateaus past 16 as Gitaly/Postgres bind). Pair the
+        # generation --concurrency with workers: c=48 -> 8 (default), c=64 -> 16.
+        puma['worker_processes'] = ${GITLAB_PUMA_WORKERS:-8}
+        sidekiq['max_concurrency'] = ${GITLAB_SIDEKIQ_CONCURRENCY:-25}
+        prometheus_monitoring['enable'] = false
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/gitlab/bin/gitlab-healthcheck --fail --max-time 10"]
+      interval: 30s
+      timeout: 30s
+      retries: 20
+      start_period: 240s
+    ports:
+      - "127.0.0.1:0:8929"
+    networks:
+      - bench-net
+
+  owncloud:
+    image: ghcr.io/theagentcompany/servers-owncloud:1.0.0
+    pull_policy: missing
+    restart: "no"
+    hostname: owncloud
+    depends_on:
+      - owncloud-collabora
+    # NB: the image's init.sh runs at build time and POSTs to the install
+    # endpoint with hardcoded admin=theagentcompany. OWNCLOUD_ADMIN_*
+    # env vars don't override that, so we don't set them here. Manager
+    # defaults match.
+    environment:
+      - OWNCLOUD_DOMAIN=owncloud
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud
+    # Named volume on the app/data root (the image's only VOLUME) so uploaded
+    # files + the sqlite/config survive for snapshot/restore. Populated from the
+    # image's baked install on first mount, so fresh boots are unchanged.
+    volumes:
+      - owncloud-data:/var/www/html
+    # OwnCloud's first-boot install routine restarts Apache mid-startup,
+    # and /status.php returns "installed":true before that restart
+    # finishes — so a status-only probe goes green during the gap when
+    # WebDAV connections actually get Connection-reset-by-peer.
+    # Hit the same authenticated WebDAV endpoint our state-manager uses;
+    # if THIS answers HTTP 207 (Multi-Status) or 200, the manager will
+    # also succeed. start_period=0 makes the healthcheck fire from t=0
+    # so `docker compose up -d --wait` actually blocks on it.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u theagentcompany:theagentcompany -X PROPFIND -H 'Depth: 0' http://127.0.0.1/remote.php/webdav/ -o /dev/null -w '%{http_code}' | grep -qE '^(200|207)$' || exit 1"]
+      interval: 10s
+      timeout: 8s
+      retries: 30
+      start_period: 0s
+    ports:
+      - "127.0.0.1:0:80"
+    networks:
+      - bench-net
+
+  owncloud-collabora:
+    image: collabora/code:24.04.9.2.1
+    pull_policy: missing
+    restart: "no"
+    hostname: owncloud-collabora
+    environment:
+      - extra_params=--o:ssl.enable=false
+    networks:
+      - bench-net
+
+  # RocketChat needs MongoDB (with replicaset) + Redis-stack alongside the
+  # main rocket.chat container. Container names omitted so each per-session
+  # `docker compose -p <session_id>` project gets its own scoped names.
+  rocketchat-mongodb:
+    image: docker.io/bitnamilegacy/mongodb:5.0
+    pull_policy: missing
+    restart: "no"
+    hostname: mongodb
+    environment:
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_REPLICA_SET_NAME: rs0
+      MONGODB_PORT_NUMBER: 27017
+      MONGODB_INITIAL_PRIMARY_HOST: mongodb
+      MONGODB_INITIAL_PRIMARY_PORT_NUMBER: 27017
+      MONGODB_ADVERTISED_HOSTNAME: mongodb
+      MONGODB_ENABLE_JOURNAL: "true"
+      ALLOW_EMPTY_PASSWORD: "yes"
+    # Bitnami mongo declares no VOLUME, so its data dir would live in the
+    # container's writable layer and vanish on recreate. Mount a named volume
+    # at the bitnami data path so RocketChat's world (messages/users/channels —
+    # all stored in mongo) is captured by snapshot/restore.
+    volumes:
+      - mongo-data:/bitnami/mongodb
+    # Healthcheck must confirm the replica set is PRIMARY-elected.
+    # Without this, RocketChat starts while mongo is mid-replicaset-init
+    # and crashes with: "An error occurred when creating an index for
+    # collection users: Replication is being shut down". The mongo
+    # shell command exits 0 iff the local node is master in rs0.
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --quiet --eval 'db.isMaster().ismaster' | grep -q true"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks:
+      - bench-net
+
+  rocketchat:
+    image: registry.rocket.chat/rocketchat/rocket.chat:5.3.0
+    pull_policy: missing
+    restart: "no"
+    hostname: rocketchat
+    # Wait for mongo's replicaset to actually be PRIMARY-elected (per the
+    # mongo healthcheck above) before RocketChat starts indexing the
+    # users collection. service_healthy semantics block until the
+    # mongo healthcheck reports healthy.
+    depends_on:
+      rocketchat-mongodb:
+        condition: service_healthy
+    environment:
+      # "admin" is a reserved username in RocketChat 5.x; the initial-admin
+      # insert silently fails. Use a non-reserved name; the backend
+      # manager's ADMIN_USER default matches.
+      ADMIN_USERNAME: rcadmin
+      ADMIN_PASS: TheAgentCompany
+      ADMIN_EMAIL: rcadmin@agentlab.local
+      ADMIN_NAME: rcadmin
+      Show_Setup_Wizard: completed
+      OVERWRITE_SETTING_Show_Setup_Wizard: completed
+      # Lock the settings seed_org relies on at container boot. seed_org also
+      # disables these via the REST API, but those POSTs race RocketChat's REST
+      # rate limiter during seeding; if one is throttled, email-2FA stays on and
+      # EVERY per-user login 401s ("totp-required") — agents can read chat but
+      # never post (observed: post_message 0/78 in a full-lab smoke). The
+      # OVERWRITE_SETTING_* form applies before any API call, so it can't be missed.
+      OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_Enabled: "false"
+      OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_By_Email_Enabled: "false"
+      OVERWRITE_SETTING_Accounts_Password_Policy_Enabled: "false"
+      OVERWRITE_SETTING_API_Enable_Rate_Limiter: "false"
+      MONGO_URL: "mongodb://mongodb:27017/rocketchat?replicaSet=rs0"
+      MONGO_OPLOG_URL: "mongodb://mongodb:27017/local?replicaSet=rs0"
+      ROOT_URL: "http://rocketchat:3000"
+      PORT: "3000"
+      DEPLOY_METHOD: docker
+    # File uploads (most RocketChat state is in mongo; this is just attachments).
+    volumes:
+      - rocketchat-uploads:/app/uploads
+    ports:
+      - "127.0.0.1:0:3000"
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    driver: bridge
+
+# Named volumes for the data-bearing services. Per-session compose scopes each
+# as `<project>_<name>`, so concurrent sessions don't collide and `down -v`
+# cleans them up. These stable names are what make snapshot capture + a
+# `--restore-world` resume reattach possible (anonymous volumes can't be
+# reattached by a fresh `compose up`).
+volumes:
+  gitlab-config:
+  gitlab-data:
+  owncloud-data:
+  mongo-data:
+  rocketchat-uploads:
